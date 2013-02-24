@@ -1,0 +1,7 @@
+cookbooks
+tmp
+.vagrant
+Cheffile.lock
+.DS_Store
+mushroom-observer
+*~
