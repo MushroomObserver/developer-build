@@ -14,5 +14,7 @@ cookbook 'build-essential'
 
 cookbook 'passenger_apache2'
 
+cookbook 'imagemagick'
+
 # cookbook 'emacs'
 # Didn't find cookbooks for tcsh vim lynx

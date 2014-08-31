@@ -1,24 +1,36 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
 
-Vagrant::Config.run do |config|
-  config.vm.box = "lucid32"
-  config.vm.box_url = "http://files.vagrantup.com/lucid32.box"
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
 
-  config.vm.customize [
-    "modifyvm", :id,
-    "--memory", "1024"
-  ]
-  config.vm.forward_port 3000, 3000
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # All Vagrant configuration is done here. The most common configuration
+  # options are documented and commented below. For a complete reference,
+  # please see the online documentation at vagrantup.com.
+
+  # Every Vagrant virtual environment requires a box to build off of.
+  config.vm.box = "ubuntu/trusty64"
+
+  config.vm.provider "virtualbox" do |vb|
+    # Use VBoxManage to customize the VM. For example to change memory:
+    vb.customize ["modifyvm", :id, "--memory", "1024"]
+  end
+
+  config.vm.network "forwarded_port", guest: 3000, host: 3000
 
   config.vm.provision :shell, :inline => "update-locale LANG=en_US.UTF-8"
-  config.vm.provision :shell, :inline => "apt-get update"
+  config.vm.provision :shell, :inline => "apt-get update; apt-get install ruby1.9.1-dev"
   config.vm.provision :shell, :inline => "gem install chef --no-rdoc --no-ri; apt-get update"
+  config.vm.provision :shell, :inline => "ln -fs /vagrant/mo-dev /usr/local/bin/mo-dev"
 
   config.vm.provision :chef_solo do |chef|
     chef.cookbooks_path = "cookbooks"
-#    chef.data_bags_path = "data_bags"
-#    chef.roles_path = "roles"
-#    chef.add_role("some_role")
-    # chef.add_recipe("apache2")
+    chef.add_recipe "apt"
+    chef.add_recipe "build-essential"
+    chef.add_recipe "git"
+
+    chef.add_recipe("imagemagick::rmagick")
     chef.add_recipe("mysql::server")
 		chef.json = {
 		  :mysql => {
@@ -27,30 +39,6 @@ Vagrant::Config.run do |config|
 		    :server_repl_password => 'repl'
 			}
 		}
-		chef.add_recipe("mysql::ruby")
-    chef.add_recipe("rvm::system") # Currently hangs when trying to get the ruby source with curl.
-    chef.json[:rvm] = {
-      :branch => nil
-    }
-    # If this happens go to the vagrant machine and run:
-    # $ sudo su -
-    # # cd /usr/local/rvm/archives/
-    # # curl -f -L --create-dirs -C - -o bin-ruby-1.9.3-p194.tar.bz2 -# https://rvm.io/binaries/ubuntu/12.04/x86_64/ruby-1.9.3-p194.tar.bz2?rvm=1.18.3
-    # # killall curl
-    # Now go back to the machine running vagrant. Kill the 'vagrant up' with a double Control-C and run 'vagrant provision'.
-    chef.add_recipe("build-essential")
-    # chef.add_recipe("passenger_apache2")
-    # subversion subversion-tools \
-    
-    ## libcurl4-openssl-dev (libcurl4-gnutls-dev) libopenssl-ruby \ ???
-    ##  libxslt-dev (libxslt1-dev)
-    ## Add gems
-    ## Git checkout
-    ## Compile tools
-    ## Add users
-    ## sshd_config
+    chef.add_recipe "mysql::client"
   end
-
-  config.vm.provision :shell, :inline => "git clone https://github.com/MushroomObserver/config-script.git; config-script/run; rm -rf config-script"
-
 end

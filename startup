@@ -1,6 +1,5 @@
 #!/bin/bash
 
-gem install vagrant --no-rdoc --no-ri --conservative
-gem install librarian --no-rdoc --no-ri --conservative
+bundle install
 librarian-chef install
 vagrant up
